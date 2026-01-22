@@ -1,0 +1,255 @@
+{
+  "name": "Ticket Processing Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cc4a0caf-3d62-40e3-b628-3ec0eb5a169f",
+              "leftValue": "={{ $json.sentiment }}",
+              "rightValue": "Negativo",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        0
+      ],
+      "id": "7b5c1d1c-484e-472c-a71a-dcc15fdfa672",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ticketAi-trigger",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "89beee48-3eed-453b-9b22-b3e9e6f4a52c",
+      "name": "Get Ticket",
+      "webhookId": "62a0005b-d223-4550-808c-49e19203699a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-support-api-tickets.onrender.com/process-ticket",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "ticket_id",
+              "value": "={{ $json.body.ticket_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        128,
+        0
+      ],
+      "id": "1698b1df-4962-4e65-b167-6e26406fc923",
+      "name": "AI process"
+    },
+    {
+      "parameters": {
+        "sendTo": "melendezgonzalezowen@gmail.com",
+        "subject": "=🚨 Ticket negativo - {{ $json.ticket_id }}",
+        "message": "=<h2>⚠️ ALERTA: Ticket negativo detectado</h2>\n\n<p><strong>Detalles del Ticket:</strong></p>\n<ul>\n  <li><strong>ID:</strong> {{ $json.ticket_id }}</li>\n  <li><strong>Categoría:</strong> {{ $json.category }}</li>\n  <li><strong>Sentimiento:</strong> {{ $json.sentiment }}</li>\n</ul>\n\n<p>Este ticket requiere atención inmediata.</p>\n\n<hr>\n<p><em>Sistema de Tickets AI</em></p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -16
+      ],
+      "id": "73943503-28b9-44e2-9280-0dfea89ba46d",
+      "name": "Send an alert notification",
+      "webhookId": "35f085f5-a9e4-4e4f-8564-09f13066b974",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ZVDa0YBq9DsYESzD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "notifications_log",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "ticket_id",
+              "fieldValue": "={{ $('Get Ticket').item.json.body.ticket_id }}"
+            },
+            {
+              "fieldId": "notification_type",
+              "fieldValue": "Database Notification"
+            },
+            {
+              "fieldId": "sentiment",
+              "fieldValue": "={{ $json.sentiment }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $json.category }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "SENT"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        800,
+        176
+      ],
+      "id": "cb834043-a0af-48f3-978b-342f2ff1ff18",
+      "name": "Register Processed",
+      "credentials": {
+        "supabaseApi": {
+          "id": "cPG4hPkIjuPtvpEn",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "notifications_log",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "ticket_id",
+              "fieldValue": "={{ $('Get Ticket').item.json.body.ticket_id }}"
+            },
+            {
+              "fieldId": "notification_type",
+              "fieldValue": "email"
+            },
+            {
+              "fieldId": "sentiment",
+              "fieldValue": "={{ $('If').item.json.sentiment }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $('If').item.json.category }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "={{ $json.labelIds[1] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        -16
+      ],
+      "id": "c8ab2d5c-e5ea-434f-88b0-0f8821465304",
+      "name": "Register Alert ",
+      "credentials": {
+        "supabaseApi": {
+          "id": "cPG4hPkIjuPtvpEn",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send an alert notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Register Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Ticket": {
+      "main": [
+        [
+          {
+            "node": "AI process",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI process": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an alert notification": {
+      "main": [
+        [
+          {
+            "node": "Register Alert ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "019291a1-7c9e-420a-8535-341930144c7a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "eed3a6cc7753922e1b08a8af3c6e385a66fe1c65d1af12ac5ee5850986e498cc"
+  },
+  "id": "Yvgxhn8r_RQ5ujrsgsGdI",
+  "tags": []
+}
