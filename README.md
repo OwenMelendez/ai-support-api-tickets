@@ -4,9 +4,8 @@ Sistema de tickets de soporte con análisis de IA en tiempo real desarrollado pa
 
 ## URLs del Proyecto
 
-- **Dashboard Frontend**: [Pendiente de desplegar]
-- **API Backend**: https://ai-support-api-tickets.onrender.com
-- **Webhook n8n**: https://owendev.app.n8n.cloud/webhook-test/ticketAi-trigger
+- **Dashboard Frontend**: https://aidashboardweb.netlify.app/
+- **API Backend**: https://ai-support-api-tickets.onrender.com/docs
 
 ## Descripción
 
@@ -75,7 +74,7 @@ No agregues explicaciones ni texto adicional.
 - **Formato forzado**: Al especificar JSON, se evitan respuestas ambiguas
 - **Temperatura baja**: Garantiza consistencia en las respuestas
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 ### Backend
 
@@ -154,7 +153,7 @@ VITE_SUPABASE_ANON_KEY=anon_key
 
 ### Base de Datos
 
-Ejecuta el archivo `Supabase/setup.sql` en el SQL Editor de Supabase.
+Ejecuta el archivo `supabase/setup.sql` en el SQL Editor de Supabase.
 
 ## Funcionalidades
 
